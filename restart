@@ -1,0 +1,39 @@
+####### Script to restart runs ##########
+
+casedir=$1
+declare -i days=$2
+declare -i nstop=${days}*24*60*3
+
+## Copy prm file to prm_pre so parameters are correct
+cp ~/SAM/$casedir/prm ~/SAM/$casedir/prm_pre
+
+## Change nrestart and nstop in prm 
+sed -e "s|nrestart *= *[0-9]|nrestart = 1|" -e "s|nstop *= *[0-9]*|nstop = ${nstop}|" < ~/SAM/$casedir/prm_pre >  ~/SAM/$casedir/prm
+
+## Rename 2D output file in case name has been changed ##
+## Extract domain size
+temp=$( echo `expr match "$casedir" '.*\([0-9][0-9][0-9][0-9]*km\)' ` )
+echo "temp = ${temp}"
+declare -i domsize=$( echo `expr match "$temp" '\([0-9][0-9]*\)' ` )
+echo "domain size = ${domsize}"
+declare -i nxgl=${domsize}/2
+echo "nxgl = ${nxgl}"
+
+
+## Rename 2D file if needed
+if [ ! -e ~/SAM/OUT_2D/${casedir}__${nxgl}.2Dcom ]; then
+   printf "Original 2D data file doesn't exist"
+   if [ -e ~/SAM/OUT_2D/${casedir}.2Dcom ]; then
+      cp ~/SAM/OUT_2D/${casedir}.2Dcom ~/SAM/OUT_2D/${casedir}__${nxgl}.2Dcom
+      printf "2D data file had been renamed, have now reverted to original name"
+   else 
+      printf "Renamed 2D data file doesn't exist"
+      exit
+   fi
+else 
+  printf "2D data file has correct name"
+fi 
+
+# Resubmit 
+cd ~/SAM/$casedir
+qsub submit 

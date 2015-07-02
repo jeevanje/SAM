@@ -1,0 +1,95 @@
+######## Script to automatically run SAM with specified parameters##########
+###Input variables
+C_d=$1
+declare -i nsubdomains_x=$2
+declare -i nsubdomains_y=$3
+declare -i days=$4
+tabs_s=$5
+ppn=$6
+
+declare -i dx=3
+declare -i nstop=${days:=120}*24*60*3
+declare -i nxgl=${nsubdomains_x}*${nsubdomains_y}
+declare -i L=${dx}*${nxgl}
+declare -i nodes=${nxgl}/${ppn:=12}
+
+
+casedir=${C_d}e-3_${L}km_${dx}km_${tabs_s}_noevap
+
+
+
+# Compile SAM if it doesn't exist
+cd ~/SAM
+if [ ! -e "SAM_${nxgl}X${nxgl}" ]; then
+	~/SAM/SAMmaker ${nsubdomains_x} ${nsubdomains_y} 
+else
+   printf "SAM_${nxgl}X${nxgl} already exists."
+fi
+
+# Check to see that SAM compiled correctly
+if [ ! -e "SAM_${nxgl}X${nxgl}" ]; then
+   printf "SAM did not compile - submission aborted."
+   exit
+fi
+
+# Make case directory if it doesn't exist 
+if [ ! -d "$casedir" ]; then 
+	cp -r casedir_pre $casedir
+        printf "Created directory ${casedir}."
+else 
+    printf "Directory ${casedir} already exists."
+fi
+
+# Ensure existence of prm_pre and submit_pre files
+if [ ! -f "~/SAM/$casedir/prm_pre" ]; then
+   cp ~/SAM/casedir_pre/prm_pre ~/SAM/$casedir/prm_pre
+fi
+
+if [ ! -f "~/SAM/$casedir/submit_pre" ]; then
+   cp ~/SAM/casedir_pre/submit_pre ~/SAM/$casedir/submit_pre
+fi
+
+## Delete .stat, .2Dcom and .3Dcom files if they already exist so SAM doesn't crash
+if [ -e ~/SAM/OUT_STAT/${casedir}_.stat ] ; then
+   rm ~/SAM/OUT_STAT/${casedir}_.stat
+   printf "pre-existing stat file deleted."
+else  
+   printf "Stat file doesn't already exist."
+fi
+
+if [ -e ~/SAM/OUT_2D/${casedir}__${nxgl}.2Dcom ] ; then
+   rm ~/SAM/OUT_2D/${casedir}__${nxgl}.2Dcom
+   printf "pre-existing 2D file deleted."
+else  
+   printf "2D output file doesn't already exist."
+fi
+
+if [ -e ~/SAM/OUT_3D/${casedir}__${nxgl}_000004320.com3D ] ; then
+   rm ~/SAM/OUT_3D/${casedir}__*
+   printf "pre-existing 3D files deleted."
+else  
+   printf "3D files don't already exist."
+fi
+
+## Get sounding
+  if [ -e OUT_3D/${C_d}e-3_108km_${dx}km_RCE_snd ]; then
+    cp OUT_3D/${C_d}e-3_108km_${dx}km_RCE_snd ${casedir}/snd
+    printf "Sounding copied from OUT_3D/${C_d}e-3_108km_${dx}km_RCE_snd."
+  else 
+   printf "Sounding not found."
+  exit
+  fi
+
+## Clear sam.err
+rm ~/SAM/${casedir}/sam.err
+
+# Modify prm file
+sed -e "s|nrestart = [0-9]|nrestart = 0|" -e "s|C_d *= *[0-9]*\.[0-9]*|C_d = ${C_d}|" -e "s|nstop *= *[0-9]*|nstop = ${nstop}|" -e "s|tabs_s *= * [0-9][0-9]*.|tabs_s = ${tabs_s}|" -e "s|dx *= *[0-9]*|dx = ${dx}000|" -e "s|dy *= *[0-9]*|dy = ${dx}000|" < ~/SAM/$casedir/prm_pre > ~/SAM/$casedir/prm
+
+# Modify submit file
+sed -e "s|\#PBS -N .*$|\#PBS -N $casedir|" -e "s|\#PBS -l nodes=[0-9]*| \#PBS -l nodes=${nodes}|" -e "s|ppn=[0-9]*|ppn=${ppn:=12}|" -e "s|path=.*$|path=$casedir|" -e "s|SAM_[0-9]*X[0-9]*[A-Za-z_]*|SAM_${nxgl}X${nxgl}|"   < ~/SAM/$casedir/submit_pre > ~/SAM/$casedir/submit 
+
+
+# Submit run
+cd ~/SAM/$casedir
+qsub submit 

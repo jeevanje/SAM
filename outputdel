@@ -1,0 +1,28 @@
+### Delete output files to prepare for re-submission of a run
+
+casedir=$1
+
+if [ -e ~/SAM/OUT_STAT/${casedir}_.stat ] ; then
+   rm ~/SAM/OUT_STAT/${casedir}_.stat
+   printf "pre-existing stat file deleted."
+else  
+   printf "Stat file doesn't already exist."
+fi
+
+if [ -e ~/SAM/OUT_2D/${casedir}__[0-9]*.2Dcom ] ; then
+   rm ~/SAM/OUT_2D/${casedir}__[0-9]*.2Dcom
+   printf "pre-existing 2D file deleted."
+else  
+   printf "2D output file doesn't already exist."
+fi
+
+if [ -e ~/SAM/OUT_3D/${casedir}__[0-9]*_*4320*.com3D ] ; then
+   rm ~/SAM/OUT_3D/${casedir}__*
+   printf "pre-existing 3D files deleted." 
+elif [ -e ~/SAM/OUT_3D/${casedir}.nc ] ; then
+   rm ~/SAM/OUT_3D/${casedir}.nc
+   printf "pre-existing nc file deleted." 
+ else  
+   printf "3D files don't already exist."
+fi
+

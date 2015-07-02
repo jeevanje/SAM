@@ -1,0 +1,87 @@
+&MICRO_M2005
+douse_reffc = .true.
+douse_reffi = .true.
+dopredictNc  = .true.
+ccnconst = 200.
+/
+
+&PARAMETERS
+
+caseid ='',
+
+nrestart = 0, ! run type (0=initial, 1=restart, 2=branch restart)
+nrestart_skip = 11,! # of stat files to skip between restart files
+
+CEM = .true.,              ! Put SAM in CRM mode (as opposed to LES)
+OCEAN = .true., 
+ocean_type      = 0        ! =0 means uniform SST
+tabs_s          = 300.     ! Set SST temp
+dosgs           = .true.,
+dosmagor        = .true.,
+doscalar        = .false.,
+dodamping       = .true.,  ! Damp gravity waves
+doupperbound    = .true.,
+docloud         = .true.,
+doprecip        = .true.,
+dolongwave      = .true.,
+doshortwave     = .true.,
+dosurface       = .true.,
+dolargescale    = .false.,
+doradforcing    = .false.,
+dosfcforcing    = .false., ! Turn off forced surface fluxes! 
+docoriolis      = .false.,
+donudging_uv    = .true., ! Nudge horizontal mean u,v to values in lsf or snd  
+donudging_tq    = .false., ! Nudge horiz mean temp and water vapor
+doperpetual     = .true.   ! no diurnal cycle, solar constant set to avg value
+doradhomo       = .false.  ! Homogenization of radiative heating rates
+
+tauls = 7200.,             ! Time between nudgings
+
+
+
+SFC_FLX_FXD    = .false.,  ! Prescribe heat and mom fluxes
+SFC_TAU_FXD    = .false.,  ! Prescribe mom fluxes only
+
+perturb_type = 7  ! Start from aggregated initial conditions
+
+do_simple_lhf  = .true.    ! Simple latent heat flux scheme
+C_d = 1.5e-03   ! Drag coefficient
+Cdscale = 1.               ! Scaling factor
+
+longitude0 = 155.,
+latitude0 = -2.,
+
+nrad = 30,                 ! Frequency of calling radiation routine. 30*20 sec = every 10 minutes 
+
+dx =    2000.,
+dy =    2000.,
+
+dt =    20.,
+
+day0=353.75,
+doseasons = .false.,
+doisccp = .false.,         ! Satellite output (same for next two variables)
+domodis = .false.,
+domisr = .false.,
+
+nstop   = 259200, ! 60 days = 60*24*60*3 
+nprint  = 180,   ! Print output once per hour = 60*3=180 steps
+nstat   = 4320,  ! Stat output once every  days
+nstatfrq= 144,   ! Collect 144 samples per 1 day period -> 1 sample/10 minutes
+
+doSAMconditionals = .false.
+dosatupdnconditionals = .false.
+
+nsave2D = 4320,   ! Every day
+nsave2Dstart    = 1,
+nsave2Dend      = 9999999,
+
+nsave3D = 4320,  ! Every day
+nsave3Dstart    = 1,
+nsave3Dend      = 999999999,
+save3Dbin      = .false.
+rad3Dout  = .false. ! Output addnl 3D rad fields like reff
+
+/
+
+

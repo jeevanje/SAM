@@ -1,0 +1,27 @@
+#### Script to compile SAM with specified grid dimensions #####
+
+function Makefilesub
+{
+	nxgl=$1
+	nygl=$2
+	sed "s|SAM\_[0-9][0-9]*X[0-9][0-9]*|SAM\_${nxgl}X${nygl}|" < ~/SAM/Makefile_pre > ~/SAM/Makefile
+}
+
+function domainsub
+{
+	nxgl=$1
+	nygl=$2
+	nsubdomains_x=$3
+        nsubdomains_y=$4
+	sed -e "s|nx\_gl \= [0-9][0-9]*|nx_gl = ${nxgl}|" -e "s|ny\_gl \= [0-9][0-9]*|ny\_gl \= ${nygl}|" -e "s|nsubdomains_x *= *[0-9]*|nsubdomains_x = ${nsubdomains_x}|" -e "s|nsubdomains_y *= *[0-9]*|nsubdomains_y = ${nsubdomains_y}|" < ~/SAM/SRC/domain_pre.f90 > ~/SAM/SRC/domain.f90 
+}
+
+declare -i nsubdomains_x=$1
+declare -i nsubdomains_y=$2
+declare -i nxgl=${nsubdomains_x}*${nsubdomains_y}
+
+Makefilesub ${nxgl} ${nxgl} 
+domainsub ${nxgl} ${nxgl} ${nsubdomains_x} ${nsubdomains_y}
+
+cd ~/SAM
+csh Build

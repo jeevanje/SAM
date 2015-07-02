@@ -1,0 +1,32 @@
+#!/bin/bash
+#PBS -N 1.5e-3_192km
+#PBS -q lr_batch
+ #PBS -l nodes=8:ppn=12:lr2
+#PBS -l walltime=24:00:00
+#PBS -e sam.err
+#PBS -o sam.out
+#PBS -V
+
+# Set the run path
+path=1.5e-3_192km
+
+# Installation configuration
+samname=SAM_96X96  # Name of executable!
+samdir=/global/home/users/njeevanjee/SAM
+nprocs=$(wc -l $PBS_NODEFILE | awk '{print $1}')
+run="mpirun -np $nprocs $samdir/$samname  $path > $path/log"
+
+# Check that the path is of correct form
+if [ ! -d $samdir/$path ]
+then
+   echo "Error in resub: The directory $samdir/$path does not exist"
+   exit 1
+fi
+
+
+
+
+
+# Run SAM
+cd $samdir
+eval $run
